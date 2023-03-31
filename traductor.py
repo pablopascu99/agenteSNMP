@@ -1,16 +1,36 @@
-from pysnmp.smi import view
+from pysnmp.smi import builder, view, compiler, rfc1902
 
-# Carga el MIB correspondiente
-mibViewController = view.MibViewController("./RFC1213-MIB.mib")
-print(mibViewController)
-# Define el OID a traducir
-oid = '1.3.6.1.2.1.6.13.1.1'
+# Assemble MIB browser
+mibBuilder = builder.MibBuilder()
+mibViewController = view.MibViewController(mibBuilder)
+compiler.addMibCompiler(mibBuilder, sources=['file:///usr/share/snmp/mibs', 'http://mibs.snmplabs.com/asn1/@mib@'])
 
-# Traduce el OID a nombre de objeto
-name, label, suffix = mibViewController.getNodeName(oid)
-print('Nombre de objeto: %s' % name)
+# Pre-load MIB modules we expect to work with
+mibBuilder.loadModules('RFC1213-MIB', 'SNMP-COMMUNITY-MIB')
 
-# También puedes traducir un nombre de objeto a OID
-name = 'snmpTrapOID'
-oid, label, suffix = mibViewController.getNodeLocation(name)
-print('OID: %s' % oid)
+# This is what we can get in TRAP PDU
+varBinds = [
+    # ('1.3.6.1.2.1.1.3.0', 12345),
+    # ('1.3.6.1.6.3.1.1.4.1.0', '1.3.6.1.6.3.1.1.5.2'),
+    # ('1.3.6.1.6.3.18.1.3.0', '0.0.0.0'),
+    # ('1.3.6.1.6.3.18.1.4.0', ''),
+    # ('1.3.6.1.6.3.1.1.4.3.0', '1.3.6.1.4.1.20408.4.1.1.2'),
+    ('1.3.6.1.2.1.6.13.1.1', 1),
+    ('1.3.6.1.2.1.6.13.1.1', 4),
+    ('1.3.6.1.2.1.6.13.1.1', 3)
+]
+
+# Run var-binds through MIB resolver
+# You may want to catch and ignore resolution errors here
+# print(rfc1902.ObjectType(rfc1902.ObjectIdentity(varBinds[0][0])).resolveWithMib(mibViewController))
+
+varBinds = [rfc1902.ObjectType(rfc1902.ObjectIdentity(x[0]), x[1]).resolveWithMib(mibViewController)
+            for x in varBinds]
+# print(varBinds)
+for varBind in varBinds:
+    print(varBind)
+
+# resolved_varBinds = []
+# for x in varBinds:
+#     resolved_varBinds.append(rfc1902.ObjectType(rfc1902.ObjectIdentity(x[0]), x[1]).resolveWithMib(mibViewController))
+# print(resolved_varBinds)
