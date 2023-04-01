@@ -20,12 +20,25 @@ def cbFun(transportDispatcher, transportDomain, transportAddress, wholeMsg):
         reqPDU = pMod.apiMessage.getPDU(reqMsg)
         if reqPDU.isSameTypeWith(pMod.TrapPDU()):
             if msgVer == api.protoVersion1:
-                print('Enterprise: %s' % (pMod.apiTrapPDU.getEnterprise(reqPDU).prettyPrint()))
-                print('Agent Address: %s' % (pMod.apiTrapPDU.getAgentAddr(reqPDU).prettyPrint()))
-                print('Generic Trap: %s' % (pMod.apiTrapPDU.getGenericTrap(reqPDU).prettyPrint()))
-                print('Specific Trap: %s' % (pMod.apiTrapPDU.getSpecificTrap(reqPDU).prettyPrint()))
-                print('Uptime: %s' % (pMod.apiTrapPDU.getTimeStamp(reqPDU).prettyPrint()))
-                varBinds = pMod.apiTrapPDU.getVarBindList(reqPDU)
+                enterprise = pMod.apiTrapPDU.getEnterprise(reqPDU).prettyPrint()
+                print('Enterprise: %s' % (enterprise))
+                agentAdress = pMod.apiTrapPDU.getAgentAddr(reqPDU).prettyPrint()
+                print('Agent Address: %s' % (agentAdress))
+                genericTrap = pMod.apiTrapPDU.getGenericTrap(reqPDU).prettyPrint()
+                print('Generic Trap: %s' % (genericTrap))
+                specificTrap = pMod.apiTrapPDU.getSpecificTrap(reqPDU).prettyPrint()
+                print('Specific Trap: %s' % (specificTrap))
+                uptime = pMod.apiTrapPDU.getTimeStamp(reqPDU).prettyPrint()
+                print('Uptime: %s' % (uptime))
+                varBinds = pMod.apiTrapPDU.getVarBinds(reqPDU)
+                varBindsList = []
+                for oid, val in varBinds:
+                    oid = oid.prettyPrint()
+                    print('OID: %s' % (oid))
+                    value = val.prettyPrint()
+                    print('Value: %s' % (value))
+                    varBindsTuple = (oid,value)
+                    varBindsList.append(varBindsTuple)
                 # Assemble MIB browser
                 mibBuilder = builder.MibBuilder()
                 mibViewController = view.MibViewController(mibBuilder)
@@ -33,32 +46,22 @@ def cbFun(transportDispatcher, transportDomain, transportAddress, wholeMsg):
 
                 # Pre-load MIB modules we expect to work with
                 mibBuilder.loadModules('RFC1213-MIB', 'SNMP-COMMUNITY-MIB')
-
-                print('Var-binds(no split):')
-                print(varBinds)
-                name, value = varBinds[0]
-                print(name)
-                print(value)
-                print('Var-binds(split):')
-                # print(rfc1902.ObjectType(rfc1902.ObjectIdentity(varBinds[0][0])).resolveWithMib(mibViewController))
-                resolved_varBinds = []
-                for x1 in varBinds:
-                    # print(x1)
-                    for x2 in x1:
-                        print(x2)
-                        print(type(x2))
-                        # rfc1902.ObjectType(rfc1902.ObjectIdentity(x[0],y[0])).resolveWithMib(mibViewController)
-                # varBinds = [rfc1902.ObjectType(rfc1902.ObjectIdentity(x[0]), x[1]).resolveWithMib(mibViewController) for x in varBinds]
-                # for varBind in varBinds:
-                #     print('OID: %s' % varBind.getObjectIdentity())
-                #     print('Value: %s' % varBind.getSyntax().prettyPrint())
-                # print(varBinds)
+                print("TRADUCCION.............")
+                # ent = rfc1902.ObjectType(rfc1902.ObjectIdentity(enterprise)).resolveWithMib(mibViewController)
+                # print(ent)
+                varBinds = [rfc1902.ObjectType(rfc1902.ObjectIdentity(x[0]), x[1]).resolveWithMib(mibViewController) for x in varBindsList]
+                for varBind in varBinds:
+                    print(varBind)
             else:
                 varBinds = pMod.apiPDU.getVarBindList(reqPDU)
-                # print(varBinds)
-            # print('Var-binds:')
-            # for oid, val in varBinds:
-            #     print('%s = %s' % (oid.prettyPrint(), val.prettyPrint()))
+                varBindsList = []
+                for oid, val in varBinds:
+                    oid = oid.prettyPrint()
+                    print('OID: %s' % (oid))
+                    value = val.prettyPrint()
+                    print('Value: %s' % (value))
+                    varBindsTuple = (oid,value)
+                    varBindsList.append(varBindsTuple)
     return wholeMsg
 
 transportDispatcher = AsynsockDispatcher()

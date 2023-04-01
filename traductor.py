@@ -19,7 +19,7 @@ varBinds = [
     ('1.3.6.1.2.1.6.13.1.1', 4),
     ('1.3.6.1.2.1.6.13.1.1', 3)
 ]
-
+# print(type(varBinds[0]))
 # Run var-binds through MIB resolver
 # You may want to catch and ignore resolution errors here
 # print(rfc1902.ObjectType(rfc1902.ObjectIdentity(varBinds[0][0])).resolveWithMib(mibViewController))
