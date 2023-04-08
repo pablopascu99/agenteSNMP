@@ -1,0 +1,8 @@
+version: '3'
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
+    volumes:
+      - ./agent/mibs:/usr/share/snmp/mibs
